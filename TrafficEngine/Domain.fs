@@ -1,33 +1,13 @@
 ﻿module TrafficEngine.Domain
 
 open TrafficEngine.Units
+open TrafficEngine.Graph
 
 [<Struct>]
-type LaneId = LaneId of int
+type LaneNumber = LaneNumber of int<lane>
 
 [<Struct>]
 type IntersectionId = IntersectionId of int
-
-[<Struct>]
-type RoadId = RoadId of int
-
-[<Struct>]
-type LanePosition = {
-    Road: RoadId
-    Lane: LaneId
-}
-
-type IntersectionControl =
-    | Uncontrolled
-    | YieldSign
-    | StopSign of allWay: bool
-    | TrafficSignal of phases: int * cycleDuration: float<sec>
-
-type Intersection = {
-    Id : IntersectionId
-    Label: string
-    Control: IntersectionControl
-}
 
 type RoadType =
     | Highway
@@ -39,13 +19,96 @@ type RoadType =
 type RoadParameters = {
     Distance: float<m>
     SpeedLimit: float<kmph>
-    Lanes: int<lane>
-    Capacity: float<vph>
     RoadType: RoadType
+    LaneCount: int<lanes>
 }
 
 type Road = {
-    Id: RoadId
     Label: string
     Parameters: RoadParameters
+}
+
+type Lane = {
+    Road: Road
+    Ordinal: LaneNumber
+}
+
+type Emitter = {
+    Label: string
+    ToLanes: Lane list    // lanes that originate here
+}
+
+type Drain = {
+    Label: string
+    FromLanes: Lane list  // lanes that terminate here
+}
+
+type Junction = {
+    From: Lane
+    To: Lane
+}
+
+type FlowState =
+    | RightOfWay
+    | Yield
+    | Stop
+
+type SignalPhase = {
+    Duration: float<sec>
+    JunctionStates: Map<Junction, FlowState>
+}
+
+type SignalConfig = {
+    Phases: SignalPhase list
+    YellowDuration: float<sec>
+    AllRedDuration: float<sec>    // clearance interval between phases
+}
+
+type IntersectionControl =
+    | Uncontrolled
+    | YieldSign
+    | StopSign of allWay: bool
+    | TrafficSignal of SignalConfig
+
+type Intersection = {
+    Label: string
+    Control: IntersectionControl
+    Junctions: Junction list
+}
+
+type Node =
+    | Emitter of Emitter
+    | Drain of Drain
+    | Intersection of Intersection
+    
+type DriverParameters = {
+    ReactionTime: float<driverScalar>
+    Aggression: float<driverScalar>
+    Courtesy: float<driverScalar>
+}
+
+type DriverRoutine =
+    | Commuter of workStart: float<hr> * workEnd: float<hr> * lunchBreak: bool
+    | ServiceWorker of shiftStart: float<hr> * shiftDuration: float<hr>
+    | Cruising
+
+type DriverProfile = {
+    Parameters: DriverParameters
+    Routine: DriverRoutine
+}
+
+[<Struct>]
+type VehicleId = VehicleId of int
+
+type VehiclePosition = {
+    Lane: Lane
+    Distance: float<m>      // how far along the lane
+}
+
+type Vehicle = {
+    Id: VehicleId
+    Profile: DriverProfile
+    Position: VehiclePosition
+    Speed: float<mps>
+    Destination: NodeId
 }

@@ -10,6 +10,8 @@
 [<Measure>] type hr
 [<Measure>] type veh
 [<Measure>] type lane
+[<Measure>] type lanes
+[<Measure>] type driverScalar
 
 // =============================================================================
 // Derived Measures
@@ -32,3 +34,6 @@ let secToHr (t: float<sec>) : float<hr> = t / 3600.0<sec/hr>
 
 let kmphToMps (s: float<kmph>) : float<mps> = s * (1000.0<m/km> / 3600.0<sec/hr>)
 let mpsToKmph (s: float<mps>) : float<kmph> = s * (3600.0<sec/hr> / 1000.0<m/km>)
+
+let laneRange (count: int<lanes>) : int<lane> list =
+    List.init (int count) (fun i -> i * 1<lane>)
