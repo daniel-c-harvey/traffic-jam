@@ -11,8 +11,8 @@
         <Compile Include="Domain.fs" />
         <Compile Include="GraphDomain.fs" />
         <Compile Include="Valildation.fs" />
-        <Compile Include="Simulation.fs" />
         <Compile Include="Configuration.fs" />
+        <Compile Include="Simulation.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
 

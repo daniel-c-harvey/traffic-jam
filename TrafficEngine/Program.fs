@@ -1,14 +1,12 @@
-﻿module TrafficEngine.Program
+module TrafficEngine.Program
 
 open TrafficEngine.Configuration
-open TrafficEngine.Graph
-open TrafficEngine.Simulation
 
 [<EntryPoint>]
 let main args =
     match args with
     | [| configPath |] ->
-        let config = loadFromFile<SimConfig> configPath
+        let config = loadConfig configPath
         printfn "Loaded graph with %d nodes" (Map.count config.Graph.Nodes)
         0
     | _ ->
