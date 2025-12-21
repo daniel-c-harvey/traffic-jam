@@ -5,7 +5,7 @@ open TrafficEngine.Units
 open TrafficEngine.Domain
 open TrafficEngine.Graph
 open TrafficEngine.Validation
-open TrafficEngine.Simulation
+open TrafficEngine.Configuration
 open Expecto
 
 [<Tests>]
@@ -424,7 +424,7 @@ let serializationTests = testList "Serialization" [
         
         Expect.equal restored original "should round-trip"
     }
-    test "round-trip full graph" {
+    test "round-trip FileConfig" {
         let roadA = {
             Label = "Road A"
             Parameters = {
@@ -434,36 +434,37 @@ let serializationTests = testList "Serialization" [
                 LaneCount = 2<lanes>
             }
         }
-        
-        let roadALane0 = { Road = roadA; Ordinal = LaneNumber 0<lane> }
-        let roadALane1 = { Road = roadA; Ordinal = LaneNumber 1<lane> }
-        
+
         let emitter = Emitter {
             Label = "Entry"
-            ToLanes = [ roadALane0; roadALane1 ]
+            ToLanes = []
             SpawnRate = 100.0<vph>
             ProfileDistribution = []
         }
-        
+
         let drain = Drain {
             Label = "Exit"
-            FromLanes = [ roadALane0; roadALane1 ]
+            FromLanes = []
         }
-        
-        let graph =
-            GraphBuilder.empty
-            |> GraphBuilder.addVertex { Id = VertexId 0; Value = emitter }
-            |> GraphBuilder.addVertex { Id = VertexId 1; Value = drain }
-            |> GraphBuilder.addEdge { Id = EdgeId 0; Source = VertexId 0; Target = VertexId 1; Value = roadA }
-            |> GraphBuilder.build
-        
-        let config = { Graph = graph; TimeStep = 0.1<sec> }
-        
+
+        let config: FileConfig = {
+            Network = {
+                Nodes = [ (VertexId 0, emitter); (VertexId 1, drain) ]
+                Connections = [ (roadA, VertexId 0, VertexId 1) ]
+            }
+            TimeStep = 0.1<sec>
+        }
+
         let json = Configuration.serialize config
-        let restored = Configuration.deserialize<SimConfig> json
-        
-        Expect.equal (Map.count restored.Graph.Nodes) 2 "two nodes"
-        Expect.equal (Map.count restored.Graph.Edges) 1 "one edge"
+        let restored = Configuration.deserialize<FileConfig> json
+
+        Expect.equal (List.length restored.Network.Nodes) 2 "two nodes"
+        Expect.equal (List.length restored.Network.Connections) 1 "one connection"
         Expect.equal restored.TimeStep config.TimeStep "timestep preserved"
+
+        // Verify we can build a graph from it
+        let simConfig = buildSimConfig restored
+        Expect.equal (Map.count simConfig.Graph.Nodes) 2 "graph has two nodes"
+        Expect.equal (Map.count simConfig.Graph.Edges) 1 "graph has one edge"
     }
 ]

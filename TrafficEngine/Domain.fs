@@ -61,6 +61,14 @@ type Drain = {
     FromLanes: Lane list  // lanes that terminate here
 }
 
+type Sink = {
+    Label: string
+    ToLanes: Lane list    // lanes that originate here (emitter behavior)
+    FromLanes: Lane list  // lanes that terminate here (drain behavior)
+    SpawnRate: float<vph>
+    ProfileDistribution: (DriverProfile * float) list
+}
+
 type Junction = {
     From: Lane
     To: Lane
@@ -97,6 +105,7 @@ type Intersection = {
 type Node =
     | Emitter of Emitter
     | Drain of Drain
+    | Sink of Sink
     | Intersection of Intersection
 
 [<Struct>]

@@ -52,6 +52,17 @@ let buildDrain () =
         FromLanes = []  // Will be populated when roads are added
     }
 
+let buildSink () =
+    let label = prompt "Sink label"
+    let rate = promptFloat "Spawn rate (vehicles/hour)"
+    Sink {
+        Label = label
+        ToLanes = []
+        FromLanes = []
+        SpawnRate = rate * 1.0<vph>
+        ProfileDistribution = []
+    }
+
 let buildIntersection () =
     let label = prompt "Intersection label"
     let controlChoice = promptChoice "Control type" ["Uncontrolled"; "Yield"; "Stop (2-way)"; "Stop (all-way)"]
@@ -64,15 +75,16 @@ let buildIntersection () =
     Intersection {
         Label = label
         Control = control
-        Junctions = []  // Will be configured separately
+        Junctions = []
     }
 
 let addNode () =
-    let nodeType = promptChoice "Node type" ["Emitter"; "Drain"; "Intersection"]
+    let nodeType = promptChoice "Node type" ["Emitter"; "Drain"; "Sink (bidirectional terminus)"; "Intersection"]
     let node =
         match nodeType with
         | 0 -> buildEmitter ()
         | 1 -> buildDrain ()
+        | 2 -> buildSink ()
         | _ -> buildIntersection ()
     let id = getNextVertexId ()
     nodes <- nodes @ [(id, node)]
@@ -88,6 +100,7 @@ let addRoad () =
             let label = match node with
                         | Emitter e -> e.Label
                         | Drain d -> d.Label
+                        | Sink s -> s.Label
                         | Intersection x -> x.Label
             printfn "  %d. %s" i label)
 
@@ -106,6 +119,8 @@ let addRoad () =
             | _ -> Residential
         let laneCount = promptInt "Lane count"
 
+        let bidirectional = promptChoice "Direction" ["One-way"; "Bidirectional"] = 1
+
         let road = {
             Label = label
             Parameters = {
@@ -116,7 +131,12 @@ let addRoad () =
             }
         }
         connections <- connections @ [(road, source, target)]
-        printfn "Added road: %s" label
+        if bidirectional then
+            let reverseRoad = { road with Label = label + " (reverse)" }
+            connections <- connections @ [(reverseRoad, target, source)]
+            printfn "Added bidirectional road: %s" label
+        else
+            printfn "Added road: %s" label
 
 let showSummary () =
     printfn "\n=== Network Summary ==="
@@ -125,6 +145,7 @@ let showSummary () =
         let (nodeType, label) = match node with
                                 | Emitter e -> ("Emitter", e.Label)
                                 | Drain d -> ("Drain", d.Label)
+                                | Sink s -> ("Sink", s.Label)
                                 | Intersection x -> ("Intersection", x.Label)
         printfn "  [%d] %s: %s" i nodeType label)
     printfn "Roads (%d):" (List.length connections)
@@ -161,6 +182,35 @@ let setTimeStep () =
     let ts = promptFloat "Time step (seconds)"
     timeStep <- ts * 1.0<sec>
 
+let deleteNode () =
+    if List.isEmpty nodes then
+        printfn "No nodes to delete"
+    else
+        showSummary ()
+        let id = VertexId (promptInt "Node ID to delete")
+        let before = List.length nodes
+        nodes <- nodes |> List.filter (fun (vid, _) -> vid <> id)
+        connections <- connections |> List.filter (fun (_, s, t) -> s <> id && t <> id)
+        if List.length nodes < before then
+            printfn "Deleted node %d and its connected roads" (match id with VertexId i -> i)
+        else
+            printfn "Node not found"
+
+let deleteRoad () =
+    if List.isEmpty connections then
+        printfn "No roads to delete"
+    else
+        printfn "Roads:"
+        connections |> List.iteri (fun i (road, VertexId s, VertexId t) ->
+            printfn "  %d. %s: %d -> %d" i road.Label s t)
+        let idx = promptInt "Road index to delete"
+        if idx >= 0 && idx < List.length connections then
+            let (road, _, _) = connections.[idx]
+            connections <- connections |> List.indexed |> List.filter (fun (i, _) -> i <> idx) |> List.map snd
+            printfn "Deleted road: %s" road.Label
+        else
+            printfn "Invalid index"
+
 [<EntryPoint>]
 let main _ =
     printfn "=== Traffic Network Config Wizard ==="
@@ -170,6 +220,8 @@ let main _ =
         let choice = promptChoice "\nMain Menu" [
             "Add node"
             "Add road"
+            "Delete node"
+            "Delete road"
             "Set timestep"
             "Show summary"
             "Save config"
@@ -179,10 +231,12 @@ let main _ =
         match choice with
         | 0 -> addNode ()
         | 1 -> addRoad ()
-        | 2 -> setTimeStep ()
-        | 3 -> showSummary ()
-        | 4 -> saveConfig ()
-        | 5 -> loadConfig ()
+        | 2 -> deleteNode ()
+        | 3 -> deleteRoad ()
+        | 4 -> setTimeStep ()
+        | 5 -> showSummary ()
+        | 6 -> saveConfig ()
+        | 7 -> loadConfig ()
         | _ -> running <- false
 
     0
