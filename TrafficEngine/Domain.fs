@@ -9,6 +9,22 @@ type LaneNumber = LaneNumber of int<lane>
 [<Struct>]
 type IntersectionId = IntersectionId of int
 
+type DriverParameters = {
+    ReactionTime: float<driverScalar>
+    Aggression: float<driverScalar>
+    Courtesy: float<driverScalar>
+}
+
+type DriverRoutine =
+    | Commuter of workStart: float<hr> * workEnd: float<hr> * lunchBreak: bool
+    | ServiceWorker of shiftStart: float<hr> * shiftDuration: float<hr>
+    | Cruising
+
+type DriverProfile = {
+    Parameters: DriverParameters
+    Routine: DriverRoutine
+}
+
 type RoadType =
     | Highway
     | Arterial
@@ -36,6 +52,8 @@ type Lane = {
 type Emitter = {
     Label: string
     ToLanes: Lane list    // lanes that originate here
+    SpawnRate: float<vph>
+    ProfileDistribution: (DriverProfile * float) list
 }
 
 type Drain = {
@@ -80,22 +98,6 @@ type Node =
     | Emitter of Emitter
     | Drain of Drain
     | Intersection of Intersection
-    
-type DriverParameters = {
-    ReactionTime: float<driverScalar>
-    Aggression: float<driverScalar>
-    Courtesy: float<driverScalar>
-}
-
-type DriverRoutine =
-    | Commuter of workStart: float<hr> * workEnd: float<hr> * lunchBreak: bool
-    | ServiceWorker of shiftStart: float<hr> * shiftDuration: float<hr>
-    | Cruising
-
-type DriverProfile = {
-    Parameters: DriverParameters
-    Routine: DriverRoutine
-}
 
 [<Struct>]
 type VehicleId = VehicleId of int
@@ -110,5 +112,5 @@ type Vehicle = {
     Profile: DriverProfile
     Position: VehiclePosition
     Speed: float<mps>
-    Destination: NodeId
+    Destination: Node
 }

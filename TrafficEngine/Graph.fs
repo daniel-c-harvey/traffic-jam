@@ -1,32 +1,32 @@
 ﻿module TrafficEngine.Graph
 
 [<Struct>]
-type NodeId = NodeId of int
+type VertexId = VertexId of int
 
 [<Struct>]
 type EdgeId = EdgeId of int
 
 type Vertex<'Value> = {
-    Id: NodeId
+    Id: VertexId
     Value: 'Value
 }
 
 type Edge<'Value> = {
     Id: EdgeId
-    Source: NodeId
-    Target: NodeId
+    Source: VertexId
+    Target: VertexId
     Value: 'Value
 }
 
 type Graph<'NodeValue, 'EdgeValue> = {
-    Nodes: Map<NodeId, Vertex<'NodeValue>>
+    Nodes: Map<VertexId, Vertex<'NodeValue>>
     Edges: Map<EdgeId, Edge<'EdgeValue>>
-    NodeIndex: Map<NodeId, int>
+    NodeIndex: Map<VertexId, int>
     Adjacency: EdgeId option[,]
 }
 
 type GraphBuilder<'NodeValue, 'EdgeValue> = {
-    Nodes: Map<NodeId, Vertex<'NodeValue>>
+    Nodes: Map<VertexId, Vertex<'NodeValue>>
     Edges: Map<EdgeId, Edge<'EdgeValue>>
 }
 

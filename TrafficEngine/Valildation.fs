@@ -6,21 +6,21 @@ open TrafficEngine.GraphDomain
 open TrafficEngine.Units
 
 type ValidationError =
-    | MissingJunctionForLane of nodeId: NodeId * lane: Lane
-    | UnreachableLane of nodeId: NodeId * lane: Lane
-    | InvalidEmitterLane of nodeId: NodeId * lane: Lane
-    | InvalidDrainLane of nodeId: NodeId * lane: Lane
-    | MissingSignalState of nodeId: NodeId * junction: Junction * phaseIndex: int
-    | NotAnIntersection of nodeId: NodeId
+    | MissingJunctionForLane of nodeId: VertexId * lane: Lane
+    | UnreachableLane of nodeId: VertexId * lane: Lane
+    | InvalidEmitterLane of nodeId: VertexId * lane: Lane
+    | InvalidDrainLane of nodeId: VertexId * lane: Lane
+    | MissingSignalState of nodeId: VertexId * junction: Junction * phaseIndex: int
+    | NotAnIntersection of nodeId: VertexId
 
-let incomingRoads (nodeId: NodeId) (graph: RoadGraph) : Road list =
+let incomingRoads (nodeId: VertexId) (graph: RoadGraph) : Road list =
     graph.Edges
     |> Map.values
     |> Seq.filter (fun edge -> edge.Target = nodeId)
     |> Seq.map (fun edge -> edge.Value)
     |> Seq.toList
 
-let outgoingRoads (nodeId: NodeId) (graph: RoadGraph) : Road list =
+let outgoingRoads (nodeId: VertexId) (graph: RoadGraph) : Road list =
     graph.Edges
     |> Map.values
     |> Seq.filter (fun edge -> edge.Source = nodeId)
@@ -31,7 +31,7 @@ let lanesForRoad (road: Road) : Lane list =
     laneRange road.Parameters.LaneCount
     |> List.map (fun n -> { Road = road; Ordinal = LaneNumber n })
 
-let validateIntersection (nodeId: NodeId) (node: Node) (graph: RoadGraph) : ValidationError list =    
+let validateIntersection (nodeId: VertexId) (node: Node) (graph: RoadGraph) : ValidationError list =    
     match node with
     | Intersection intersection ->
         let incoming = incomingRoads nodeId graph

@@ -11,6 +11,13 @@
         <Compile Include="Domain.fs" />
         <Compile Include="GraphDomain.fs" />
         <Compile Include="Valildation.fs" />
+        <Compile Include="Simulation.fs" />
+        <Compile Include="Configuration.fs" />
+        <Compile Include="Program.fs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="FSharp.SystemTextJson" Version="1.4.36" />
     </ItemGroup>
 
 </Project>

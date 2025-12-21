@@ -4,8 +4,9 @@ open TrafficEngine
 open TrafficEngine.Units
 open TrafficEngine.Domain
 open TrafficEngine.Graph
-open Expecto
 open TrafficEngine.Validation
+open TrafficEngine.Simulation
+open Expecto
 
 [<Tests>]
 let laneTests = testList "Lane" [
@@ -101,12 +102,23 @@ let nodeTests = testList "Node" [
             }
         }
         
+        let driverProfile = {
+            Parameters = {
+                ReactionTime = 1.<driverScalar>;
+                Aggression = 1.<driverScalar>;
+                Courtesy = 1.<driverScalar>
+            }
+            Routine = Cruising
+        }
+        
         let emitter = Emitter {
             Label = "Highway On-Ramp"
             ToLanes = [
                 { Road = road; Ordinal = LaneNumber 0<lane> }
                 { Road = road; Ordinal = LaneNumber 1<lane> }
             ]
+            SpawnRate = 60.<vph>
+            ProfileDistribution = [ (driverProfile, 1.) ]
         }
         
         match emitter with
@@ -200,10 +212,21 @@ let graphTests = testList "Graph" [
         let roadALane0 = { Road = roadA; Ordinal = LaneNumber 0<lane> }
         let roadALane1 = { Road = roadA; Ordinal = LaneNumber 1<lane> }
         let roadBLane0 = { Road = roadB; Ordinal = LaneNumber 0<lane> }
+                
+        let driverProfile = {
+            Parameters = {
+                ReactionTime = 1.<driverScalar>
+                Aggression = 1.<driverScalar>
+                Courtesy = 1.<driverScalar>
+            }
+            Routine = Cruising
+        }        
         
         let emitter = Emitter {
             Label = "Entry Point"
             ToLanes = [ roadALane0; roadALane1 ]
+            SpawnRate = 60.<vph>
+            ProfileDistribution = [ (driverProfile, 1.) ]
         }
         
         let intersection = Intersection {
@@ -261,9 +284,20 @@ let graphBuildTests = testList "GraphBuilder" [
         let roadALane1 = { Road = roadA; Ordinal = LaneNumber 1<lane> }
         let roadBLane0 = { Road = roadB; Ordinal = LaneNumber 0<lane> }
         
+        let driverProfile = {
+            Parameters = {
+                ReactionTime = 1.<driverScalar>
+                Aggression = 1.<driverScalar>
+                Courtesy = 1.<driverScalar>
+            }
+            Routine = Cruising
+        }
+                
         let emitter = Emitter {
             Label = "Entry"
             ToLanes = [ roadALane0; roadALane1 ]
+            SpawnRate = 60.<vph>
+            ProfileDistribution = [ (driverProfile, 1.) ]
         }
         
         let intersection = Intersection {
@@ -285,19 +319,19 @@ let graphBuildTests = testList "GraphBuilder" [
         
         let graph =
             GraphBuilder.empty
-            |> GraphBuilder.addVertex { Id = NodeId 0; Value = emitter }
-            |> GraphBuilder.addVertex { Id = NodeId 1; Value = intersection }
-            |> GraphBuilder.addVertex { Id = NodeId 2; Value = drain }
-            |> GraphBuilder.addEdge { Id = roadAEdgeId; Source = NodeId 0; Target = NodeId 1; Value = roadA }
-            |> GraphBuilder.addEdge { Id = roadBEdgeId; Source = NodeId 1; Target = NodeId 2; Value = roadB }
+            |> GraphBuilder.addVertex { Id = VertexId 0; Value = emitter }
+            |> GraphBuilder.addVertex { Id = VertexId 1; Value = intersection }
+            |> GraphBuilder.addVertex { Id = VertexId 2; Value = drain }
+            |> GraphBuilder.addEdge { Id = roadAEdgeId; Source = VertexId 0; Target = VertexId 1; Value = roadA }
+            |> GraphBuilder.addEdge { Id = roadBEdgeId; Source = VertexId 1; Target = VertexId 2; Value = roadB }
             |> GraphBuilder.build
         
         Expect.equal (Map.count graph.Nodes) 3 "three nodes"
         Expect.equal (Map.count graph.Edges) 2 "two edges"
         
-        let idx0 = Map.find (NodeId 0) graph.NodeIndex
-        let idx1 = Map.find (NodeId 1) graph.NodeIndex
-        let idx2 = Map.find (NodeId 2) graph.NodeIndex
+        let idx0 = Map.find (VertexId 0) graph.NodeIndex
+        let idx1 = Map.find (VertexId 1) graph.NodeIndex
+        let idx2 = Map.find (VertexId 2) graph.NodeIndex
         
         Expect.equal graph.Adjacency.[idx0, idx1] (Some roadAEdgeId) "road A connects emitter to intersection"
         Expect.equal graph.Adjacency.[idx1, idx2] (Some roadBEdgeId) "road B connects intersection to drain"
@@ -332,6 +366,23 @@ let validationTests = testList "Validation" [
         let roadALane1 = { Road = roadA; Ordinal = LaneNumber 1<lane> }
         let roadBLane0 = { Road = roadB; Ordinal = LaneNumber 0<lane> }
         
+        let driverProfile = {
+            Parameters = {
+                ReactionTime = 1.<driverScalar>
+                Aggression = 1.<driverScalar>
+                Courtesy = 1.<driverScalar>
+            }
+            Routine = Cruising
+        }
+                
+        let emitter = Emitter {
+            Label = "Entry"
+            ToLanes = [ roadALane0; roadALane1 ]
+            SpawnRate = 60.<vph>
+            ProfileDistribution = [ (driverProfile, 1.) ]
+        }
+        
+        
         // Only route lane 0, forget lane 1
         let intersection = Intersection {
             Label = "Incomplete Merge"
@@ -344,16 +395,75 @@ let validationTests = testList "Validation" [
         
         let graph =
             GraphBuilder.empty
-            |> GraphBuilder.addVertex { Id = NodeId 0; Value = Emitter { Label = "Entry"; ToLanes = [ roadALane0; roadALane1 ] } }
-            |> GraphBuilder.addVertex { Id = NodeId 1; Value = intersection }
-            |> GraphBuilder.addVertex { Id = NodeId 2; Value = Drain { Label = "Exit"; FromLanes = [ roadBLane0 ] } }
-            |> GraphBuilder.addEdge { Id = EdgeId 0; Source = NodeId 0; Target = NodeId 1; Value = roadA }
-            |> GraphBuilder.addEdge { Id = EdgeId 1; Source = NodeId 1; Target = NodeId 2; Value = roadB }
+            |> GraphBuilder.addVertex { Id = VertexId 0; Value = emitter }
+            |> GraphBuilder.addVertex { Id = VertexId 1; Value = intersection }
+            |> GraphBuilder.addVertex { Id = VertexId 2; Value = Drain { Label = "Exit"; FromLanes = [ roadBLane0 ] } }
+            |> GraphBuilder.addEdge { Id = EdgeId 0; Source = VertexId 0; Target = VertexId 1; Value = roadA }
+            |> GraphBuilder.addEdge { Id = EdgeId 1; Source = VertexId 1; Target = VertexId 2; Value = roadB }
             |> GraphBuilder.build
         
-        let errors = validateIntersection (NodeId 1) intersection graph
+        let errors = validateIntersection (VertexId 1) intersection graph
                      
         Expect.isNonEmpty errors "should have validation errors"
         Expect.equal (List.length errors) 1 "one missing junction"
+    }
+]
+
+[<Tests>]
+let serializationTests = testList "Serialization" [
+    test "round-trip road parameters" {
+        let original = {
+            Distance = 500.0<m>
+            SpeedLimit = 50.0<kmph>
+            RoadType = Street
+            LaneCount = 2<lanes>
+        }
+        
+        let json = Configuration.serialize original
+        let restored = Configuration.deserialize<RoadParameters> json
+        
+        Expect.equal restored original "should round-trip"
+    }
+    test "round-trip full graph" {
+        let roadA = {
+            Label = "Road A"
+            Parameters = {
+                Distance = 500.0<m>
+                SpeedLimit = 50.0<kmph>
+                RoadType = Street
+                LaneCount = 2<lanes>
+            }
+        }
+        
+        let roadALane0 = { Road = roadA; Ordinal = LaneNumber 0<lane> }
+        let roadALane1 = { Road = roadA; Ordinal = LaneNumber 1<lane> }
+        
+        let emitter = Emitter {
+            Label = "Entry"
+            ToLanes = [ roadALane0; roadALane1 ]
+            SpawnRate = 100.0<vph>
+            ProfileDistribution = []
+        }
+        
+        let drain = Drain {
+            Label = "Exit"
+            FromLanes = [ roadALane0; roadALane1 ]
+        }
+        
+        let graph =
+            GraphBuilder.empty
+            |> GraphBuilder.addVertex { Id = VertexId 0; Value = emitter }
+            |> GraphBuilder.addVertex { Id = VertexId 1; Value = drain }
+            |> GraphBuilder.addEdge { Id = EdgeId 0; Source = VertexId 0; Target = VertexId 1; Value = roadA }
+            |> GraphBuilder.build
+        
+        let config = { Graph = graph; TimeStep = 0.1<sec> }
+        
+        let json = Configuration.serialize config
+        let restored = Configuration.deserialize<SimConfig> json
+        
+        Expect.equal (Map.count restored.Graph.Nodes) 2 "two nodes"
+        Expect.equal (Map.count restored.Graph.Edges) 1 "one edge"
+        Expect.equal restored.TimeStep config.TimeStep "timestep preserved"
     }
 ]
