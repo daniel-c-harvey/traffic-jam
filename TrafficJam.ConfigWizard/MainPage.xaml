@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:TrafficJam.ConfigWizard.ViewModels"
+             xmlns:models="clr-namespace:TrafficJam.ConfigWizard.Models"
+             x:Class="TrafficJam.ConfigWizard.MainPage"
+             x:DataType="vm:NetworkViewModel">
+
+    <Grid ColumnDefinitions="300,*,300" RowDefinitions="Auto,*">
+        <!-- Toolbar -->
+        <HorizontalStackLayout Grid.Row="0" Grid.ColumnSpan="3" Spacing="10" Padding="10" BackgroundColor="{StaticResource Gray100}">
+            <Button Text="Emitter" Command="{Binding AddNodeCommand}" CommandParameter="{x:Static models:NodeType.Emitter}" />
+            <Button Text="Drain" Command="{Binding AddNodeCommand}" CommandParameter="{x:Static models:NodeType.Drain}" />
+            <Button Text="Sink" Command="{Binding AddNodeCommand}" CommandParameter="{x:Static models:NodeType.Sink}" />
+            <Button Text="Intersection" Command="{Binding AddNodeCommand}" CommandParameter="{x:Static models:NodeType.Intersection}" />
+            <BoxView WidthRequest="1" BackgroundColor="Gray" />
+            <Button Text="Add Road" Command="{Binding AddRoadCommand}" />
+            <BoxView WidthRequest="1" BackgroundColor="Gray" />
+            <Button Text="Save" Clicked="OnSaveClicked" />
+            <Button Text="Load" Clicked="OnLoadClicked" />
+        </HorizontalStackLayout>
+
+        <!-- Left Panel: Nodes List -->
+        <VerticalStackLayout Grid.Row="1" Grid.Column="0" Padding="10">
+            <Label Text="Nodes" FontSize="18" FontAttributes="Bold" />
+            <CollectionView ItemsSource="{Binding Nodes}"
+                            SelectedItem="{Binding SelectedNode}"
+                            SelectionMode="Single"
+                            HeightRequest="250">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:NodeModel">
+                        <Border Padding="8" Margin="2">
+                            <Label Text="{Binding DisplayName}" />
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+            <Button Text="Delete Node" Command="{Binding DeleteNodeCommand}" Margin="0,5,0,0" />
+
+            <Label Text="Roads" FontSize="18" FontAttributes="Bold" Margin="0,20,0,0" />
+            <CollectionView ItemsSource="{Binding Roads}"
+                            SelectedItem="{Binding SelectedRoad}"
+                            SelectionMode="Single"
+                            HeightRequest="250">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:RoadModel">
+                        <Border Padding="8" Margin="2">
+                            <Label Text="{Binding DisplayName}" />
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+            <Button Text="Delete Road" Command="{Binding DeleteRoadCommand}" Margin="0,5,0,0" />
+        </VerticalStackLayout>
+
+        <!-- Center: Graph Canvas (placeholder) -->
+        <Border Grid.Row="1" Grid.Column="1" Margin="10" BackgroundColor="{StaticResource Gray200}">
+            <Label Text="Graph Canvas (Future)" HorizontalOptions="Center" VerticalOptions="Center" />
+        </Border>
+
+        <!-- Right Panel: Properties -->
+        <ScrollView Grid.Row="1" Grid.Column="2" Padding="10">
+            <VerticalStackLayout Spacing="10">
+                <Label Text="Properties" FontSize="18" FontAttributes="Bold" />
+
+                <!-- Node Properties - use BindingContext change to avoid nullable path issues -->
+                <VerticalStackLayout IsVisible="{Binding SelectedNode, Converter={StaticResource IsNotNullConverter}}"
+                                     BindingContext="{Binding SelectedNode}"
+                                     x:DataType="models:NodeModel">
+                    <Label Text="Node Properties" FontAttributes="Bold" />
+                    <Label Text="Label" />
+                    <Entry Text="{Binding Label}" />
+                    <Label Text="Type" />
+                    <Picker x:Name="NodeTypePicker" SelectedItem="{Binding NodeType}" />
+                    <Label Text="Spawn Rate (veh/hr)" />
+                    <Entry Text="{Binding SpawnRate}" Keyboard="Numeric" />
+                    <Label Text="Control Type" />
+                    <Picker x:Name="ControlTypePicker" SelectedItem="{Binding ControlType}" />
+                </VerticalStackLayout>
+
+                <!-- Road Properties - use BindingContext change to avoid nullable path issues -->
+                <VerticalStackLayout IsVisible="{Binding SelectedRoad, Converter={StaticResource IsNotNullConverter}}"
+                                     BindingContext="{Binding SelectedRoad}"
+                                     x:DataType="models:RoadModel">
+                    <Label Text="Road Properties" FontAttributes="Bold" />
+                    <Label Text="Label" />
+                    <Entry Text="{Binding Label}" />
+                    <Label Text="Distance (m)" />
+                    <Entry Text="{Binding Distance}" Keyboard="Numeric" />
+                    <Label Text="Speed Limit (km/h)" />
+                    <Entry Text="{Binding SpeedLimit}" Keyboard="Numeric" />
+                    <Label Text="Lane Count" />
+                    <Entry Text="{Binding LaneCount}" Keyboard="Numeric" />
+                    <Label Text="Road Type" />
+                    <Picker x:Name="RoadTypePicker" SelectedItem="{Binding RoadType}" />
+                    <Label Text="Source Node ID" />
+                    <Entry Text="{Binding SourceId}" Keyboard="Numeric" />
+                    <Label Text="Target Node ID" />
+                    <Entry Text="{Binding TargetId}" Keyboard="Numeric" />
+                </VerticalStackLayout>
+
+                <!-- Time Step -->
+                <VerticalStackLayout Margin="0,20,0,0">
+                    <Label Text="Simulation Settings" FontAttributes="Bold" />
+                    <Label Text="Time Step (sec)" />
+                    <Entry Text="{Binding TimeStep}" Keyboard="Numeric" />
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

@@ -6,6 +6,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TrafficEngine.Tests", "Traf
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TrafficEngine.ConfigWizard", "TrafficEngine.ConfigWizard\TrafficEngine.ConfigWizard.fsproj", "{043A36E5-2220-4FBC-8893-2A6A8DB7CAD0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrafficJam.ConfigWizard", "TrafficJam.ConfigWizard\TrafficJam.ConfigWizard.csproj", "{A071131E-1A00-4CCE-999E-9312D5CCCEFB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,6 +54,18 @@ Global
 		{043A36E5-2220-4FBC-8893-2A6A8DB7CAD0}.Release|x64.Build.0 = Release|Any CPU
 		{043A36E5-2220-4FBC-8893-2A6A8DB7CAD0}.Release|x86.ActiveCfg = Release|Any CPU
 		{043A36E5-2220-4FBC-8893-2A6A8DB7CAD0}.Release|x86.Build.0 = Release|Any CPU
+		{A071131E-1A00-4CCE-999E-9312D5CCCEFB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A071131E-1A00-4CCE-999E-9312D5CCCEFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A071131E-1A00-4CCE-999E-9312D5CCCEFB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A071131E-1A00-4CCE-999E-9312D5CCCEFB}.Debug|x64.Build.0 = Debug|Any CPU
+		{A071131E-1A00-4CCE-999E-9312D5CCCEFB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A071131E-1A00-4CCE-999E-9312D5CCCEFB}.Debug|x86.Build.0 = Debug|Any CPU
+		{A071131E-1A00-4CCE-999E-9312D5CCCEFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A071131E-1A00-4CCE-999E-9312D5CCCEFB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A071131E-1A00-4CCE-999E-9312D5CCCEFB}.Release|x64.ActiveCfg = Release|Any CPU
+		{A071131E-1A00-4CCE-999E-9312D5CCCEFB}.Release|x64.Build.0 = Release|Any CPU
+		{A071131E-1A00-4CCE-999E-9312D5CCCEFB}.Release|x86.ActiveCfg = Release|Any CPU
+		{A071131E-1A00-4CCE-999E-9312D5CCCEFB}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
